@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Song+Myung&display=swap');
+
+:root { font-family: 'Gowun Dodum', system-ui, sans-serif; color: #f8f1dc; background: #10191b; }
+* { box-sizing: border-box; }
+html, body, #app { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+canvas { display: block; width: 100%; height: 100%; }
+.ui { position: fixed; inset: 0; pointer-events: none; }
+.topbar { position: absolute; top: 22px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; align-items: center; }
+.quest { min-width: 330px; padding: 14px 20px; border: 1px solid rgba(255,241,201,.6); border-radius: 14px; background: linear-gradient(135deg,rgba(24,39,40,.94),rgba(48,54,45,.9)); box-shadow: 0 8px 30px #07101288; }
+.quest-label { color: #edc16b; font-size: 12px; letter-spacing: .18em; }
+.quest-title { margin-top: 2px; font-family: 'Song Myung',serif; font-size: 20px; }
+.quest-step { color: #d6ddcf; font-size: 13px; margin-top: 3px; }
+.coins { display:flex; align-items:center; gap:7px; padding: 11px 15px; border-radius: 999px; background: #172526e8; border:1px solid #d9bd6d99; font-size:18px; font-weight:700; }
+.coin-dot { width:21px; height:21px; border-radius:50%; background:#e5b852; border:3px solid #ffdf81; box-shadow:inset 0 0 0 2px #a97824; }
+.prompt { position:absolute; left:50%; bottom:18%; transform:translateX(-50%); padding:11px 17px; color:#172221; background:#fff4d3; border:2px solid #796445; border-radius:12px; font-weight:700; box-shadow:0 6px 24px #0007; opacity:0; transition:.15s; }
+.prompt.show { opacity:1; }
+.key { display:inline-grid; place-items:center; min-width:27px; height:25px; padding:0 6px; margin-right:7px; color:white; background:#273d3b; border-radius:6px; box-shadow:inset 0 -2px #13201f; font:700 13px system-ui; }
+.dialogue { position:absolute; left:50%; bottom:38px; transform:translateX(-50%); width:min(670px,calc(100% - 36px)); padding:20px 24px 18px; color:#27302c; background:#fff8df; border:3px solid #594a35; border-radius:16px; box-shadow:0 12px 50px #0009; pointer-events:auto; display:none; }
+.dialogue.show { display:block; animation:pop .16s ease-out; }
+.speaker { font-family:'Song Myung',serif; color:#8d4b2d; font-size:20px; font-weight:700; }
+.dialogue-text { margin:8px 0 14px; font-size:17px; line-height:1.55; }
+.continue { float:right; border:0; border-radius:9px; padding:9px 15px; color:#fff9e7; background:#315b55; font:700 14px inherit; cursor:pointer; }
+.controls { position:absolute; left:22px; bottom:22px; padding:12px 15px; color:#e5eadf; background:#132021c7; border:1px solid #ffffff28; border-radius:11px; font-size:12px; line-height:1.75; transition:.25s; }
+.controls.fade { opacity:.28; }
+.toast { position:absolute; top:112px; left:50%; transform:translate(-50%,-8px); padding:11px 18px; color:#263021; background:#ffe69c; border:2px solid #8e6e2f; border-radius:999px; font-weight:700; opacity:0; transition:.25s; }
+.toast.show { opacity:1; transform:translate(-50%,0); }
+.debug { position:absolute; right:12px; bottom:12px; min-width:220px; padding:10px 12px; color:#b7f7c1; background:#07100de8; border:1px solid #4d7; font:12px/1.55 Consolas,monospace; display:none; }
+.debug.show { display:block; }
+.reticle { position:absolute; top:50%; left:50%; width:5px; height:5px; border-radius:50%; background:#fff9; transform:translate(-50%,-50%); }
+@keyframes pop { from { transform:translateX(-50%) scale(.96); opacity:0 } }
+@media(max-width:600px){.quest{min-width:240px}.controls{display:none}.topbar{top:10px}.quest-title{font-size:16px}}
+
