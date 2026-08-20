@@ -20,6 +20,26 @@ canvas { display: block; width: 100%; height: 100%; }
 .speaker { font-family:'Song Myung',serif; color:#8d4b2d; font-size:20px; font-weight:700; }
 .dialogue-text { margin:8px 0 14px; font-size:17px; line-height:1.55; }
 .continue { float:right; border:0; border-radius:9px; padding:9px 15px; color:#fff9e7; background:#315b55; font:700 14px inherit; cursor:pointer; }
+.workshop { position:absolute; inset:0; display:none; place-items:center; padding:20px; background:#10201ed9; pointer-events:auto; }
+.workshop.show { display:grid; }
+.workshop-card { width:min(640px,100%); padding:26px; color:#29302b; background:#fff7dc; border:3px solid #594a35; border-radius:20px; box-shadow:0 20px 70px #000c; text-align:center; }
+.workshop-kicker { color:#9b5d35; font-size:12px; font-weight:700; letter-spacing:.15em; }
+.workshop h2 { margin:6px 0; font:30px 'Song Myung',serif; }
+.workshop p { margin:0 0 16px; color:#665e50; }
+.flag-preview { position:relative; width:min(430px,90%); aspect-ratio:3/2; margin:0 auto 14px; overflow:hidden; background:#d8cdb1; border:3px solid #6b5b45; border-radius:4px; box-shadow:0 7px 20px #3e312633; }
+.flag-paper { position:absolute; inset:0; background:#fffdf2; opacity:0; transform:scale(.75); transition:.35s; }
+.flag-preview.step-1 .flag-paper,.flag-preview.step-2 .flag-paper,.flag-preview.step-3 .flag-paper { opacity:1; transform:scale(1); }
+.taegeuk { position:absolute; left:50%; top:50%; width:30%; aspect-ratio:1; transform:translate(-50%,-50%) scale(.2) rotate(-32deg); border-radius:50%; overflow:hidden; background:linear-gradient(#c9433b 0 50%,#315caa 50%); opacity:0; transition:.35s; }
+.taegeuk::before,.taegeuk::after { content:''; position:absolute; left:0; width:50%; aspect-ratio:1; border-radius:50%; }
+.taegeuk::before { top:25%; background:#c9433b; }
+.taegeuk::after { bottom:25%; left:50%; background:#315caa; }
+.flag-preview.step-2 .taegeuk,.flag-preview.step-3 .taegeuk { opacity:1; transform:translate(-50%,-50%) scale(1) rotate(-32deg); }
+.trigram { position:absolute; color:#171b19; font:700 clamp(26px,5vw,46px)/1 monospace; opacity:0; transition:.35s; }
+.trigram-a { left:13%; top:15%; transform:rotate(-35deg); }.trigram-b { right:13%; bottom:15%; transform:rotate(-35deg); }.trigram-c { right:13%; top:15%; transform:rotate(35deg); }.trigram-d { left:13%; bottom:15%; transform:rotate(35deg); }
+.flag-preview.step-3 .trigram { opacity:1; }
+.workshop-progress { margin:8px 0 12px; color:#6b5536; font-weight:700; }
+.workshop-action,.workshop-close { border:0; border-radius:11px; padding:12px 18px; font:700 15px inherit; cursor:pointer; }
+.workshop-action { color:#fff; background:#315b55; }.workshop-action:disabled { background:#847d6d; cursor:default; }.workshop-close { margin-left:7px; color:#4a463d; background:#e5d7b8; }
 .controls { position:absolute; left:22px; bottom:22px; padding:12px 15px; color:#e5eadf; background:#132021c7; border:1px solid #ffffff28; border-radius:11px; font-size:12px; line-height:1.75; transition:.25s; }
 .controls.fade { opacity:.28; }
 .toast { position:absolute; top:112px; left:50%; transform:translate(-50%,-8px); padding:11px 18px; color:#263021; background:#ffe69c; border:2px solid #8e6e2f; border-radius:999px; font-weight:700; opacity:0; transition:.25s; }
@@ -39,6 +59,7 @@ canvas { display: block; width: 100%; height: 100%; }
 .save-note { margin-top:15px; color:#706a59; font-size:12px; }
 .material-count { display:inline-block; margin-left:8px; padding:2px 8px; border-radius:999px; color:#fff4cf; background:#8d6231; font-size:12px; }
 @keyframes pop { from { transform:translateX(-50%) scale(.96); opacity:0 } }
-@media(max-width:600px){.quest{min-width:240px}.controls{display:none}.topbar{top:10px}.quest-title{font-size:16px}.start-actions{grid-template-columns:1fr}.start-card{padding:24px 18px}.start-card h1{font-size:28px}}
+@media(max-width:600px){.quest{min-width:240px;max-width:calc(100vw - 85px);padding:10px 13px}.quest-step{font-size:11px}.controls{display:none}.topbar{top:10px}.quest-title{font-size:16px}.start-actions{grid-template-columns:1fr}.start-card{padding:24px 18px}.start-card h1{font-size:28px}.workshop-card{padding:20px 12px}.workshop h2{font-size:25px}.workshop-action,.workshop-close{display:block;width:100%;margin:7px 0 0}}
+
 
 
