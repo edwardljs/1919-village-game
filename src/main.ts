@@ -9,13 +9,16 @@ interface SaveData { quest: QuestState | 'milestone_complete'; coins: number; co
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = `<div class="ui">
-  <div class="topbar"><div class="quest"><div class="quest-label">지금 할 일</div><div class="quest-title" id="questTitle">장터의 사람과 이야기하기</div><div class="quest-step" id="questStep">김씨 아저씨를 찾아가 보자</div></div><div class="coins"><span class="coin-dot"></span><span id="coins">0</span></div></div>
+  <div class="topbar"><div class="quest"><div class="quest-label" id="chapterLabel">1장 · 첫 번째 부탁</div><div class="quest-title" id="questTitle">장터의 사람과 이야기하기</div><div class="quest-step" id="questStep">노란 표식의 김씨 아저씨를 찾아가 보자</div></div><div class="coins"><span class="coin-dot"></span><span id="coins">0</span></div></div>
+  <button class="restart-button" id="restartButton">↻ 처음부터</button>
+  <div class="guide" id="guide"><span class="guide-arrow" id="guideArrow">↑</span><span><b id="guideName">김씨 아저씨</b><small id="guideDistance">찾아가는 중</small></span></div>
   <div class="toast" id="toast"></div><div class="prompt" id="prompt"></div>
   <div class="dialogue" id="dialogue"><div class="speaker" id="speaker"></div><div class="dialogue-text" id="dialogueText"></div><button class="continue" id="continue">계속하기</button></div>
   <div class="workshop" id="workshop"><div class="workshop-card"><div class="workshop-kicker">함께 만드는 태극기</div><h2>태극기를 완성해 보자</h2><p>재료를 차례로 사용해 간단한 태극기를 완성해요.</p><div class="flag-preview" id="flagPreview"><div class="flag-paper"></div><div class="taegeuk"></div><div class="trigram trigram-a">☰</div><div class="trigram trigram-b">☷</div><div class="trigram trigram-c">☵</div><div class="trigram trigram-d">☲</div></div><div class="workshop-progress" id="workshopProgress">준비 완료 · 0/3</div><button class="workshop-action" id="workshopAction">한지 펼치기</button><button class="workshop-close" id="workshopClose">마을로 돌아가기</button></div></div>
   <div class="controls" id="controls"><b>WASD</b> 이동 · <b>마우스</b> 시점<br><b>Space</b> 점프 · <b>Shift</b> 달리기 · <b>E</b> 대화<br><b>F3</b> 상태 정보</div>
   <div class="reticle"></div><div class="debug" id="debug"></div>
-  <div class="start-screen" id="startScreen"><div class="start-card"><div class="start-kicker">1919 · 그날의 마을</div><h1>어디서 시작할까요?</h1><p>보따리 미션을 이미 마쳤다면 두 번째 이야기부터 바로 이어갈 수 있어요.</p><div class="start-actions"><button class="story-button secondary" id="startFresh">처음부터 시작</button><button class="story-button" id="startNext">보따리 다음부터</button></div><div class="save-note">진행 상황은 이 브라우저에 자동으로 저장됩니다.</div></div></div>
+  <div class="restart-modal" id="restartModal" role="dialog" aria-modal="true" aria-labelledby="restartTitle"><div class="restart-card"><h2 id="restartTitle">1장을 처음부터 시작할까요?</h2><p>현재 진행 상황과 엽전이 초기화됩니다.</p><div class="restart-actions"><button class="restart-cancel" id="restartCancel">계속 플레이</button><button class="restart-confirm" id="restartConfirm">처음부터 다시 시작</button></div></div></div>
+  <div class="start-screen" id="startScreen"><div class="start-card"><div class="start-kicker">1919 · 그날의 마을</div><h1>1장 · 함께 만든 태극기</h1><p>장터에서 잃어버린 보따리를 찾고, 마을 사람들과 힘을 모아 태극기를 완성해 보세요.</p><div class="start-actions"><button class="story-button" id="startFresh">1장 시작하기</button></div><div class="save-note">진행 상황은 이 브라우저에 자동으로 저장됩니다.</div></div></div>
 </div>`;
 
 await RAPIER.init();
@@ -88,8 +91,12 @@ const lee=makePerson('이씨 아주머니',0x8d5148);lee.position.set(7,0,5);lee
 const leeMarker=new THREE.Group();const leeDiamond=new THREE.Mesh(new THREE.OctahedronGeometry(.28),mat(0x68d3c2));leeDiamond.rotation.z=Math.PI/4;leeMarker.add(leeDiamond);leeMarker.position.set(7,3.55,5);scene.add(leeMarker);
 const leeLabelCanvas=document.createElement('canvas');leeLabelCanvas.width=512;leeLabelCanvas.height=128;const leeCtx=leeLabelCanvas.getContext('2d')!;leeCtx.fillStyle='rgba(20,32,31,.82)';leeCtx.roundRect(45,18,422,92,25);leeCtx.fill();leeCtx.fillStyle='#fff6da';leeCtx.font='bold 42px sans-serif';leeCtx.textAlign='center';leeCtx.fillText('이씨 아주머니',256,78);const leeLabel=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(leeLabelCanvas),transparent:true}));leeLabel.position.set(7,3.15,5);leeLabel.scale.set(3.7,.9,1);scene.add(leeLabel);
 
-const bundle=new THREE.Group(); const sack=new THREE.Mesh(new THREE.SphereGeometry(.48,10,8),mat(0x9a6c42));sack.scale.y=.72;sack.castShadow=true;bundle.add(sack);const knot=new THREE.Mesh(new THREE.ConeGeometry(.23,.38,7),mat(0x9a6c42));knot.position.y=.48;bundle.add(knot);bundle.position.set(20,.5,17);scene.add(bundle);
-const bundleGlow=new THREE.PointLight(0xffc756,2.6,5);bundleGlow.position.set(20,1.5,17);scene.add(bundleGlow);
+const bundle=new THREE.Group(); const sack=new THREE.Mesh(new THREE.SphereGeometry(.68,12,9),mat(0xb86b3f));sack.scale.y=.78;sack.castShadow=true;bundle.add(sack);const knot=new THREE.Mesh(new THREE.ConeGeometry(.32,.5,8),mat(0xd49355));knot.position.y=.62;bundle.add(knot);
+const bundleRing=new THREE.Mesh(new THREE.TorusGeometry(.95,.08,8,32),new THREE.MeshBasicMaterial({color:0xffd45f,transparent:true,opacity:.9}));bundleRing.rotation.x=Math.PI/2;bundleRing.position.y=-.4;bundle.add(bundleRing);
+const bundleBeam=new THREE.Mesh(new THREE.CylinderGeometry(.1,.42,4.6,12,1,true),new THREE.MeshBasicMaterial({color:0xffc843,transparent:true,opacity:.36,side:THREE.DoubleSide}));bundleBeam.position.y=2.25;bundle.add(bundleBeam);
+const bundleCanvas=document.createElement('canvas');bundleCanvas.width=480;bundleCanvas.height=112;const bundleCtx=bundleCanvas.getContext('2d')!;bundleCtx.fillStyle='rgba(20,32,31,.92)';bundleCtx.roundRect(25,12,430,88,22);bundleCtx.fill();bundleCtx.fillStyle='#fff6da';bundleCtx.font='bold 38px sans-serif';bundleCtx.textAlign='center';bundleCtx.fillText('잃어버린 보따리',240,70);const bundleLabel=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(bundleCanvas),transparent:true,depthTest:false}));bundleLabel.position.y=3.7;bundleLabel.scale.set(3.5,.82,1);bundleLabel.renderOrder=20;bundle.add(bundleLabel);
+bundle.position.set(20,.65,17);scene.add(bundle);
+const bundleGlow=new THREE.PointLight(0xffc756,4.5,9);bundleGlow.position.set(20,1.7,17);scene.add(bundleGlow);
 
 const materialNames:Record<MaterialId,string>={paper:'한지',red:'붉은 물감',blue:'푸른 물감'};
 function makeMaterialItem(id:MaterialId,position:[number,number,number],color:number){
@@ -101,11 +108,12 @@ function makeMaterialItem(id:MaterialId,position:[number,number,number],color:nu
   }
   const beam=new THREE.Mesh(new THREE.CylinderGeometry(.08,.32,3.4,12,1,true),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.28,side:THREE.DoubleSide}));beam.position.y=1.8;group.add(beam);
   const marker=new THREE.Mesh(new THREE.OctahedronGeometry(.22),new THREE.MeshBasicMaterial({color}));marker.position.y=3.65;marker.userData.materialMarker=true;group.add(marker);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.82,.07,8,30),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.85}));ring.rotation.x=Math.PI/2;ring.position.y=-.42;group.add(ring);
   const canvas=document.createElement('canvas');canvas.width=420;canvas.height=112;const itemCtx=canvas.getContext('2d')!;itemCtx.fillStyle='rgba(20,32,31,.9)';itemCtx.roundRect(30,12,360,88,22);itemCtx.fill();itemCtx.fillStyle='#fff6da';itemCtx.font='bold 40px sans-serif';itemCtx.textAlign='center';itemCtx.fillText(materialNames[id],210,70);const itemLabel=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(canvas),transparent:true,depthTest:false}));itemLabel.position.y=3.15;itemLabel.scale.set(2.8,.75,1);itemLabel.renderOrder=20;group.add(itemLabel);
   const glow=new THREE.PointLight(color,3.4,7);glow.position.y=1.1;group.add(glow);scene.add(group);return group;
 }
 const materials:Record<MaterialId,THREE.Group>={
-  paper:makeMaterialItem('paper',[13,.55,8],0xffe8ae),
+  paper:makeMaterialItem('paper',[10,.55,8],0xffe8ae),
   red:makeMaterialItem('red',[-9,.5,5],0xff493f),
   blue:makeMaterialItem('blue',[12,.5,-3],0x3f7dff),
 };
@@ -116,10 +124,13 @@ const playerBody=world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBas
 const playerCollider=world.createCollider(RAPIER.ColliderDesc.capsule(.62,.38),playerBody);
 const controller=world.createCharacterController(.06);controller.enableAutostep(.45,.25,true);controller.enableSnapToGround(.25);controller.setSlideEnabled(true);
 const keys=new Set<string>(); let yaw=0, pitch=.35, cameraDistance=6.5, verticalVelocity=0, grounded=false, quest:QuestState='bundle_meet', coins=0, flagStep=0, paused=false, debugVisible=false;
+let orbitDragging=false, orbitPointerX=0, orbitPointerY=0;
 const collected=new Set<MaterialId>();
 const clock=new THREE.Clock(); let elapsed=0, frames=0, fps=0, fpsTimer=0;
-const questTitle=document.querySelector('#questTitle')!; const questStep=document.querySelector('#questStep')!; const prompt=document.querySelector('#prompt')!; const toast=document.querySelector('#toast')!; const dialogue=document.querySelector('#dialogue')!; const speaker=document.querySelector('#speaker')!; const dialogueText=document.querySelector('#dialogueText')!; const debug=document.querySelector('#debug')!;
+const chapterLabel=document.querySelector('#chapterLabel')!;const questTitle=document.querySelector('#questTitle')!; const questStep=document.querySelector('#questStep')!; const prompt=document.querySelector('#prompt')!; const toast=document.querySelector('#toast')!; const dialogue=document.querySelector('#dialogue')!; const speaker=document.querySelector('#speaker')!; const dialogueText=document.querySelector('#dialogueText')!; const debug=document.querySelector('#debug')!;
+const guide=document.querySelector('#guide')!;const guideArrow=document.querySelector('#guideArrow') as HTMLElement;const guideName=document.querySelector('#guideName')!;const guideDistance=document.querySelector('#guideDistance')!;
 const startScreen=document.querySelector('#startScreen')!;
+const restartModal=document.querySelector('#restartModal')!;const restartButton=document.querySelector('#restartButton') as HTMLButtonElement;const restartCancel=document.querySelector('#restartCancel') as HTMLButtonElement;const restartConfirm=document.querySelector('#restartConfirm') as HTMLButtonElement;
 const workshop=document.querySelector('#workshop')!;const flagPreview=document.querySelector('#flagPreview')!;const workshopProgress=document.querySelector('#workshopProgress')!;const workshopAction=document.querySelector('#workshopAction') as HTMLButtonElement;const workshopClose=document.querySelector('#workshopClose') as HTMLButtonElement;
 
 function saveProgress(){try{localStorage.setItem('village1919-save',JSON.stringify({quest,coins,collected:[...collected],flagStep} satisfies SaveData))}catch{/* 저장 차단 환경에서도 플레이는 계속된다 */}}
@@ -127,17 +138,19 @@ function loadProgress(){try{const raw=localStorage.getItem('village1919-save');i
 function materialChecklist(){return (Object.keys(materialNames) as MaterialId[]).map(id=>`${collected.has(id)?'✓':'○'} ${materialNames[id]}`).join(' · ')}
 function renderQuest(){
   const steps:Record<QuestState,[string,string]>={
-    bundle_meet:['장터의 사람과 이야기하기','김씨 아저씨를 찾아가 보자'],
-    bundle_find:['잃어버린 보따리','장터 동쪽 큰 집 근처를 살펴보자'],
+    bundle_meet:['첫 번째 부탁','노란 표식의 김씨 아저씨를 찾아가 보자'],
+    bundle_find:['잃어버린 보따리','노란 빛기둥을 따라 동쪽 큰 집 뒤로 가 보자'],
     bundle_return:['보따리를 찾았다!','김씨 아저씨에게 돌려드리자'],
-    meet_lee:['새로운 이야기','이씨 아주머니를 만나보자'],
+    meet_lee:['두 번째 부탁','청록색 표식의 이씨 아주머니를 만나보자'],
     materials_find:['태극기 재료 모으기',materialChecklist()],
     materials_return:['재료를 모두 모았다!','이씨 아주머니에게 가져다드리자'],
     flag_ready:['태극기 완성하기','이씨 아주머니와 함께 재료를 사용해 보자'],
-    flag_complete:['함께 만든 태극기','다음 이야기를 기다리며 마을을 둘러보자'],
+    flag_complete:['1장 완료 · 함께 만든 태극기','마을 사람들과 힘을 모아 태극기를 완성했다!'],
   };
   [questTitle.textContent,questStep.textContent]=steps[quest];document.querySelector('#coins')!.textContent=String(coins);
+  chapterLabel.textContent=quest==='flag_complete'?'1장 · 완료':(['bundle_meet','bundle_find','bundle_return'].includes(quest)?'1장 · 1/3 보따리 찾기':(['meet_lee','materials_find','materials_return'].includes(quest)?'1장 · 2/3 재료 모으기':'1장 · 3/3 태극기 완성'));
   bundle.visible=quest==='bundle_find';bundleGlow.visible=bundle.visible;
+  if(quest==='flag_complete')guide.classList.remove('show');
   (Object.keys(materials) as MaterialId[]).forEach(id=>materials[id].visible=quest==='materials_find'&&!collected.has(id));
   npcMarker.visible=['bundle_meet','bundle_find','bundle_return'].includes(quest);
   leeMarker.visible=['meet_lee','materials_find','materials_return','flag_ready'].includes(quest);
@@ -148,7 +161,7 @@ function openDialogue(who:string,text:string,onClose?:()=>void,buttonText='계�
 function renderWorkshop(){flagPreview.className=`flag-preview step-${flagStep}`;const labels=['준비 완료 · 0/3','한지를 펼쳤어요 · 1/3','태극 문양을 그렸어요 · 2/3','태극기를 완성했어요 · 3/3'];const actions=['한지 펼치기','태극 문양 그리기','괘 배치하기','완성!'];workshopProgress.textContent=labels[flagStep];workshopAction.textContent=actions[flagStep];workshopAction.disabled=flagStep===3;workshopClose.textContent=flagStep===3?'완성한 태극기 들고 돌아가기':'잠시 마을로 돌아가기'}
 function openWorkshop(){paused=true;renderWorkshop();workshop.classList.add('show')}
 workshopAction.onclick=()=>{if(flagStep>=3)return;flagStep++;renderWorkshop();saveProgress();if(flagStep===3){coins+=5;setQuest('flag_complete','태극기 완성! 엽전 5개를 받았어요')}};
-workshopClose.onclick=()=>{workshop.classList.remove('show');paused=false;if(flagStep===3)openDialogue('이씨 아주머니','정성껏 잘 만들었구나. 이 태극기는 혼자 만든 물건이 아니라, 여러 사람이 재료와 마음을 모아 완성한 것이란다.',undefined,'마을 둘러보기')};
+workshopClose.onclick=()=>{workshop.classList.remove('show');paused=false;if(flagStep===3)openDialogue('1장 완료','김씨 아저씨의 보따리를 찾고, 이씨 아주머니와 재료를 모아 태극기를 완성했어요. 여러 사람의 작은 도움이 큰 힘이 되었습니다.',undefined,'완료한 마을 둘러보기')};
 function interact(){
   if(paused){(document.querySelector('#continue') as HTMLButtonElement).click();return}
   const p=player.position; const npcDist=p.distanceTo(npc.position); const leeDist=p.distanceTo(lee.position); const bundleDist=p.distanceTo(bundle.position);
@@ -157,37 +170,60 @@ function interact(){
   }
   if(bundle.visible&&quest==='bundle_find'&&bundleDist<2.1){bundle.visible=false;bundleGlow.visible=false;setQuest('bundle_return','보따리를 찾았다!');return}
   if(npcDist<2.7){
-    if(quest==='bundle_meet')openDialogue('김씨 아저씨','아이고, 장에 가져온 보따리를 잃어버렸구나. 동쪽 큰 집 근처였던 것 같은데… 혹시 함께 찾아주겠니?',()=>setQuest('bundle_find','새로운 할 일: 잃어버린 보따리'));
+    if(quest==='bundle_meet')openDialogue('김씨 아저씨','아이고, 장에 가져온 보따리를 잃어버렸구나. 동쪽 큰 집 뒤에서 노란 천이 보였던 것 같은데… 함께 찾아주겠니?',()=>setQuest('bundle_find','1장 1/3 · 노란 빛기둥을 따라 보따리를 찾아보자'),'찾아볼게요');
     else if(quest==='bundle_find')openDialogue('김씨 아저씨','보따리는 장터 동쪽 큰 집 근처에서 잃어버린 것 같구나. 서두르지 말고 잘 살펴보렴.');
-    else if(quest==='bundle_return')openDialogue('김씨 아저씨','정말 찾아왔구나! 남을 위해 애써 준 마음이 참 고맙다. 이 엽전은 작은 답례란다.',()=>{coins=5;setQuest('meet_lee','의뢰 완료! 엽전 5개 · 새로운 이야기가 열렸어요')});
+    else if(quest==='bundle_return')openDialogue('김씨 아저씨','정말 찾아왔구나! 남을 위해 애써 준 마음이 참 고맙다. 이 엽전은 작은 답례란다.',()=>{coins=5;setQuest('meet_lee','1장 1/3 완료 · 엽전 5개! 이제 청록색 표식의 이씨 아주머니를 만나자')},'고맙습니다');
     else openDialogue('김씨 아저씨','이씨 아주머니가 너를 찾던데, 장터 건너편 붉은 옷을 입은 분이란다.');return;
   }
   if(leeDist<2.7){
-    if(quest==='meet_lee')openDialogue('이씨 아주머니','보따리를 찾아준 아이가 너구나. 사람들과 함께 쓸 태극기를 만들려는데 한지와 붉은 물감, 푸른 물감이 필요해. 찾아줄 수 있겠니?',()=>setQuest('materials_find','새로운 할 일: 태극기 재료 3개 모으기'));
+    if(quest==='meet_lee')openDialogue('이씨 아주머니','보따리를 찾아준 아이가 너구나. 사람들과 함께 쓸 태극기를 만들려는데 한지와 붉은 물감, 푸른 물감이 필요해. 빛기둥과 길잡이를 따라 찾아줄 수 있겠니?',()=>setQuest('materials_find','1장 2/3 · 빛기둥을 따라 태극기 재료 3개를 모으자'),'제가 찾아볼게요');
     else if(quest==='materials_find')openDialogue('이씨 아주머니',`지금까지 ${collected.size}개를 찾았구나. 화면 위 수집 목록을 확인하고, 마을에 솟은 이름표와 빛기둥을 따라가 보렴.`);
     else if(quest==='materials_return')openDialogue('이씨 아주머니','모두 찾아왔구나! 여러 사람이 마음을 모으면 큰일도 준비할 수 있단다. 이 엽전은 고마움의 표시야.',()=>{coins+=10;flagStep=0;setQuest('flag_ready','재료 찾기 완료! 엽전 10개 · 태극기 만들기가 열렸어요');openDialogue('역사 한 조각','1919년 여러 지역의 사람들은 만세운동을 준비하며 태극기를 직접 만들고 서로 나누었습니다. 게임 속 마을과 인물은 가상이에요.',undefined,'기억했어요')});
     else if(quest==='flag_ready')openDialogue('이씨 아주머니','모아 온 재료가 모두 준비되었구나. 한지를 펼치고, 태극 문양과 네 괘를 차례로 완성해 보자.',openWorkshop,'만들기 시작');
     else openDialogue('이씨 아주머니','함께 만든 태극기를 잘 간직하렴. 다음 이야기가 열리기 전까지 마을을 자유롭게 둘러봐도 좋단다.');
   }
 }
+function currentTarget(){
+  if(quest==='bundle_find')return {position:bundle.position,name:'잃어버린 보따리'};
+  if(['bundle_meet','bundle_return'].includes(quest))return {position:npc.position,name:'김씨 아저씨'};
+  if(quest==='materials_find'){const visible=(Object.keys(materials) as MaterialId[]).filter(id=>materials[id].visible).sort((a,b)=>player.position.distanceTo(materials[a].position)-player.position.distanceTo(materials[b].position));const id=visible[0];if(id)return {position:materials[id].position,name:materialNames[id]}}
+  if(['meet_lee','materials_return','flag_ready'].includes(quest))return {position:lee.position,name:'이씨 아주머니'};
+  return undefined;
+}
 function debugTeleport(){
-  let target:THREE.Vector3;if(quest==='bundle_find')target=bundle.position;else if(['bundle_meet','bundle_return'].includes(quest))target=npc.position;else if(quest==='materials_find'){const next=(Object.keys(materials) as MaterialId[]).find(id=>materials[id].visible);target=next?materials[next].position:lee.position}else target=lee.position;
+  const goal=currentTarget();if(!goal)return;const target=goal.position;
   playerBody.setTranslation({x:target.x,y:1.1,z:target.z+1},true);player.position.set(target.x,.11,target.z+1);verticalVelocity=0;showToast('디버그: 현재 목표 앞으로 이동');
 }
 const hadSave=loadProgress();renderQuest();
 if(!hadSave){paused=true;startScreen.classList.add('show')}
-(document.querySelector('#startFresh') as HTMLButtonElement).onclick=()=>{collected.clear();coins=0;flagStep=0;startScreen.classList.remove('show');paused=false;setQuest('bundle_meet','처음부터 이야기를 시작합니다')};
-(document.querySelector('#startNext') as HTMLButtonElement).onclick=()=>{collected.clear();coins=5;flagStep=0;startScreen.classList.remove('show');paused=false;setQuest('meet_lee','두 번째 이야기부터 이어갑니다')};
-addEventListener('keydown',e=>{if(['KeyW','KeyA','KeyS','KeyD','Space','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.code==='Space'&&grounded&&!paused){verticalVelocity=7.3;keys.delete('Space')}if(e.code==='KeyE')interact();if(e.code==='F3'){e.preventDefault();debugVisible=!debugVisible;debug.classList.toggle('show',debugVisible)}if(e.code==='F4'&&debugVisible){e.preventDefault();debugTeleport()}});
+(document.querySelector('#startFresh') as HTMLButtonElement).onclick=()=>{collected.clear();coins=0;flagStep=0;startScreen.classList.remove('show');paused=false;setQuest('bundle_meet','1장 시작 · 노란 표식의 김씨 아저씨를 만나자')};
+let pausedBeforeRestart=false;
+restartButton.onclick=()=>{pausedBeforeRestart=paused;paused=true;restartModal.classList.add('show');restartCancel.focus()};
+restartCancel.onclick=()=>{restartModal.classList.remove('show');paused=pausedBeforeRestart;restartButton.focus()};
+restartConfirm.onclick=()=>{try{localStorage.removeItem('village1919-save')}finally{location.reload()}};
+addEventListener('keydown',e=>{if(restartModal.classList.contains('show')){if(e.code==='Escape')restartCancel.click();return}if(['KeyW','KeyA','KeyS','KeyD','Space','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.code==='Space'&&grounded&&!paused){verticalVelocity=7.3;keys.delete('Space')}if(e.code==='KeyE')interact();if(e.code==='F3'){e.preventDefault();debugVisible=!debugVisible;debug.classList.toggle('show',debugVisible)}if(e.code==='F4'&&debugVisible){e.preventDefault();debugTeleport()}});
 addEventListener('keyup',e=>keys.delete(e.code));
-renderer.domElement.addEventListener('pointerdown',()=>{try{renderer.domElement.requestPointerLock().catch(()=>{})}catch{/* 포인터 잠금을 지원하지 않는 내장 브라우저 */}});
-addEventListener('mousemove',e=>{if(document.pointerLockElement===renderer.domElement&&!paused){yaw-=e.movementX*.003;pitch=THREE.MathUtils.clamp(pitch+e.movementY*.0025,-.15,1.02)}});
+renderer.domElement.addEventListener('pointerdown',e=>{
+  orbitDragging=true;orbitPointerX=e.clientX;orbitPointerY=e.clientY;
+  try{renderer.domElement.requestPointerLock?.().catch(()=>{})}catch{/* 드래그 시점으로 계속 플레이 */}
+});
+addEventListener('pointerup',()=>orbitDragging=false);
+addEventListener('blur',()=>orbitDragging=false);
+addEventListener('mousemove',e=>{
+  if(paused)return;
+  const pointerLocked=document.pointerLockElement===renderer.domElement;
+  if(!pointerLocked&&!orbitDragging)return;
+  const movementX=pointerLocked?e.movementX:e.clientX-orbitPointerX;
+  const movementY=pointerLocked?e.movementY:e.clientY-orbitPointerY;
+  orbitPointerX=e.clientX;orbitPointerY=e.clientY;
+  yaw-=movementX*.003;pitch=THREE.MathUtils.clamp(pitch+movementY*.0025,-.15,1.02);
+});
 addEventListener('wheel',e=>cameraDistance=THREE.MathUtils.clamp(cameraDistance+e.deltaY*.006,4,9),{passive:true});
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 
 const desired=new THREE.Vector3(), forward=new THREE.Vector3(), right=new THREE.Vector3(), cameraTarget=new THREE.Vector3(), raycaster=new THREE.Raycaster();
 function update(dt:number){
-  elapsed+=dt;npcMarker.position.y=3.55+Math.sin(elapsed*2.5)*.12;leeMarker.position.y=3.55+Math.sin(elapsed*2.5+1)*.12;diamond.rotation.y+=dt*1.8;leeDiamond.rotation.y-=dt*1.8;bundle.rotation.y+=dt*.7;bundle.position.y=.5+Math.sin(elapsed*2.2)*.08;lee.rotation.y=-.7+Math.sin(elapsed*.7)*.18;
+  elapsed+=dt;npcMarker.position.y=3.55+Math.sin(elapsed*2.5)*.12;leeMarker.position.y=3.55+Math.sin(elapsed*2.5+1)*.12;diamond.rotation.y+=dt*1.8;leeDiamond.rotation.y-=dt*1.8;bundle.rotation.y+=dt*.7;bundle.position.y=.65+Math.sin(elapsed*2.2)*.08;bundleRing.scale.setScalar(1+Math.sin(elapsed*3)*.12);lee.rotation.y=-.7+Math.sin(elapsed*.7)*.18;
   (Object.keys(materials) as MaterialId[]).forEach((id,index)=>{materials[id].rotation.y+=dt*.8;const base=id==='paper'?0.55:0.5;materials[id].position.y=base+Math.sin(elapsed*2+index)*.08;const marker=materials[id].children.find(child=>child.userData.materialMarker);if(marker)marker.rotation.y+=dt*2.4});
   if(!paused){
     forward.set(-Math.sin(yaw),0,-Math.cos(yaw)); right.set(Math.cos(yaw),0,-Math.sin(yaw)); desired.set(0,0,0);
@@ -199,6 +235,7 @@ function update(dt:number){
     const npcDist=player.position.distanceTo(npc.position),leeDist=player.position.distanceTo(lee.position),bundleDist=player.position.distanceTo(bundle.position);let promptText='';
     if(quest==='materials_find'){for(const id of Object.keys(materials) as MaterialId[]){if(materials[id].visible&&player.position.distanceTo(materials[id].position)<2.1){promptText=`<span class="key">E</span>${materialNames[id]} 줍기`;break}}}
     if(!promptText&&bundle.visible&&quest==='bundle_find'&&bundleDist<2.1)promptText='<span class="key">E</span>보따리 줍기';else if(!promptText&&npcDist<2.7)promptText='<span class="key">E</span>김씨 아저씨와 이야기';else if(!promptText&&leeDist<2.7&&['meet_lee','materials_find','materials_return','flag_ready','flag_complete'].includes(quest))promptText='<span class="key">E</span>이씨 아주머니와 이야기';prompt.innerHTML=promptText;prompt.classList.toggle('show',!!promptText);
+    const goal=currentTarget();guide.classList.toggle('show',!!goal);if(goal){const dx=goal.position.x-player.position.x,dz=goal.position.z-player.position.z;const distance=Math.hypot(dx,dz);const side=dx*Math.cos(yaw)-dz*Math.sin(yaw);const ahead=-dx*Math.sin(yaw)-dz*Math.cos(yaw);guideArrow.style.transform=`rotate(${Math.atan2(side,ahead)}rad)`;guideName.textContent=goal.name;guideDistance.textContent=distance<3?'바로 앞이에요':`${Math.round(distance)}m 남았어요`}
   }
   cameraTarget.copy(player.position).add(new THREE.Vector3(0,1.75,0));const cp=new THREE.Vector3(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)).multiplyScalar(cameraDistance).add(cameraTarget);
   raycaster.set(cameraTarget,cp.clone().sub(cameraTarget).normalize());raycaster.far=cameraDistance;const hits=raycaster.intersectObjects(scene.children.filter(o=>o!==player&&o!==npc&&o!==lee&&o.type==='Mesh'),false);if(hits.length&&hits[0].distance<cameraDistance)cp.copy(raycaster.ray.at(Math.max(1.2,hits[0].distance-.35),new THREE.Vector3()));camera.position.lerp(cp,1-Math.exp(-12*dt));camera.lookAt(cameraTarget);
