@@ -11,6 +11,7 @@ const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = `<div class="ui">
   <div class="topbar"><div class="quest"><div class="quest-label" id="chapterLabel">1장 · 첫 번째 부탁</div><div class="quest-title" id="questTitle">장터의 사람과 이야기하기</div><div class="quest-step" id="questStep">노란 표식의 김씨 아저씨를 찾아가 보자</div></div><div class="coins"><span class="coin-dot"></span><span id="coins">0</span></div></div>
   <button class="restart-button" id="restartButton">↻ 처음부터</button>
+  <button class="sound-button" id="soundButton" aria-pressed="true">🔊 소리 켜짐</button>
   <div class="guide" id="guide"><span class="guide-arrow" id="guideArrow">↑</span><span><b id="guideName">김씨 아저씨</b><small id="guideDistance">찾아가는 중</small></span></div>
   <div class="toast" id="toast"></div><div class="prompt" id="prompt"></div>
   <div class="dialogue" id="dialogue"><div class="speaker" id="speaker"></div><div class="dialogue-text" id="dialogueText"></div><button class="continue" id="continue">계속하기</button></div>
@@ -24,8 +25,8 @@ app.innerHTML = `<div class="ui">
 await RAPIER.init();
 const world = new RAPIER.World({ x: 0, y: -18, z: 0 });
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x9fc3c0);
-scene.fog = new THREE.Fog(0x9fc3c0, 34, 75);
+const skyCanvas=document.createElement('canvas');skyCanvas.width=32;skyCanvas.height=512;const skyCtx=skyCanvas.getContext('2d')!;const skyGradient=skyCtx.createLinearGradient(0,0,0,512);skyGradient.addColorStop(0,'#6f9fa5');skyGradient.addColorStop(.48,'#b8d4ca');skyGradient.addColorStop(1,'#ead6ad');skyCtx.fillStyle=skyGradient;skyCtx.fillRect(0,0,32,512);const skyTexture=new THREE.CanvasTexture(skyCanvas);skyTexture.colorSpace=THREE.SRGBColorSpace;scene.background=skyTexture;
+scene.fog = new THREE.Fog(0xb7cbbd, 38, 84);
 const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 120);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
@@ -33,13 +34,19 @@ renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;
 app.prepend(renderer.domElement);
 
-scene.add(new THREE.HemisphereLight(0xdaf2ef, 0x5a4633, 2.3));
-const sun = new THREE.DirectionalLight(0xffe3ad, 3.1); sun.position.set(-18, 28, 14); sun.castShadow = true; sun.shadow.mapSize.set(2048,2048); sun.shadow.camera.left=-35; sun.shadow.camera.right=35; sun.shadow.camera.top=35; sun.shadow.camera.bottom=-35; scene.add(sun);
+scene.add(new THREE.HemisphereLight(0xe8f3e8, 0x66503d, 2.05));
+const sun = new THREE.DirectionalLight(0xffd99a, 3.35); sun.position.set(-18, 28, 14); sun.castShadow = true; sun.shadow.mapSize.set(2048,2048); sun.shadow.camera.left=-35; sun.shadow.camera.right=35; sun.shadow.camera.top=35; sun.shadow.camera.bottom=-35;sun.shadow.bias=-.00035;sun.shadow.normalBias=.025; scene.add(sun);
+const sunCanvas=document.createElement('canvas');sunCanvas.width=128;sunCanvas.height=128;const sunCtx=sunCanvas.getContext('2d')!;const sunGlow=sunCtx.createRadialGradient(64,64,4,64,64,62);sunGlow.addColorStop(0,'rgba(255,244,194,.95)');sunGlow.addColorStop(.35,'rgba(255,220,140,.65)');sunGlow.addColorStop(1,'rgba(255,211,128,0)');sunCtx.fillStyle=sunGlow;sunCtx.fillRect(0,0,128,128);const sunSprite=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(sunCanvas),transparent:true,depthWrite:false}));sunSprite.position.set(-25,23,-58);sunSprite.scale.set(12,12,1);scene.add(sunSprite);
 
 const mat = (color:number, roughness=.85) => new THREE.MeshStandardMaterial({color,roughness});
 const groundMat = mat(0x8b966b); const wood=mat(0x694833); const plaster=mat(0xd8c9a9); const roof=mat(0x404d4c); const stone=mat(0x7c8076);
+const mountainMatFar=mat(0x748d83,1),mountainMatNear=mat(0x61786f,1);
+for(const [x,z,r,h,material] of [[-34,-49,15,20,mountainMatFar],[-10,-55,18,25,mountainMatNear],[18,-51,14,21,mountainMatFar],[41,-56,19,27,mountainMatNear],[-47,-42,12,16,mountainMatNear]] as [number,number,number,number,THREE.Material][]){const mountain=new THREE.Mesh(new THREE.ConeGeometry(r,h,6),material);mountain.position.set(x,h/2-1,z);mountain.rotation.y=x*.07;mountain.receiveShadow=true;scene.add(mountain)}
+const clouds:THREE.Group[]=[];const cloudMaterial=new THREE.MeshBasicMaterial({color:0xf3ead8,transparent:true,opacity:.48,depthWrite:false});
+for(const [x,y,z,s] of [[-20,14,-35,1.3],[13,17,-44,1.7],[32,12,-29,1.1]] as [number,number,number,number][]){const cloud=new THREE.Group();for(const [ox,oy,scale] of [[-1.5,0,.9],[0,.35,1.25],[1.5,0,1]] as [number,number,number][]){const puff=new THREE.Mesh(new THREE.IcosahedronGeometry(1.25,1),cloudMaterial);puff.position.set(ox,oy,0);puff.scale.set(scale*1.45,scale*.62,scale);cloud.add(puff)}cloud.position.set(x,y,z);cloud.scale.setScalar(s);scene.add(cloud);clouds.push(cloud)}
 const ground = new THREE.Mesh(new THREE.BoxGeometry(62,1,54),groundMat); ground.position.y=-.5; ground.receiveShadow=true; scene.add(ground);
 world.createCollider(RAPIER.ColliderDesc.cuboid(31,.5,27).setTranslation(0,-.5,0));
 
@@ -75,12 +82,21 @@ stall(-6,-4,0x9c4a3f); stall(7,-5,0x335c62); stall(-7,5,0xb28a3d);
 for(const [x,z] of [[-23,-2],[24,3],[-25,18],[24,-20]] as [number,number][]) {cylinder([x,1.5,z],.35,3,wood); const crown=new THREE.Mesh(new THREE.SphereGeometry(1.8,9,7),mat(0x49613b));crown.scale.set(1.2,.9,1);crown.position.set(x,3.6,z);crown.castShadow=true;scene.add(crown)}
 for(const [x,z] of [[-11,-9],[-8,14],[11,7],[20,-6]] as [number,number][]) box('crate',[x,.45,z],[1.3,.9,1.3],wood);
 
+// Quiet village details: earthenware jars, stepping stones, grass and drifting dust.
+const jarMat=mat(0x6e4935,.72);for(const [x,z,s] of [[-12,-10,.8],[-14,-10,.62],[-20,9,.72],[18,-10,.7],[20,-10,.52]] as [number,number,number][]){const jar=new THREE.Group();const body=new THREE.Mesh(new THREE.SphereGeometry(.52*s,12,9),jarMat);body.scale.y=.82;body.position.y=.45*s;body.castShadow=true;jar.add(body);const rim=new THREE.Mesh(new THREE.TorusGeometry(.27*s,.06*s,6,14),jarMat);rim.rotation.x=Math.PI/2;rim.position.y=.83*s;jar.add(rim);jar.position.set(x,0,z);scene.add(jar)}
+const steppingMat=mat(0x929083,1);for(let i=0;i<9;i++){const step=new THREE.Mesh(new THREE.CylinderGeometry(.42+Math.sin(i)*.05,.48,.08,8),steppingMat);step.position.set(-2.2+Math.sin(i*.8)*.28,.07,13-i*2.3);step.rotation.y=i*.7;step.receiveShadow=true;scene.add(step)}
+const grassMat=new THREE.MeshBasicMaterial({color:0x617746,side:THREE.DoubleSide});for(let i=0;i<34;i++){const x=((i*17)%55)-27,z=((i*29)%47)-23;if(Math.abs(x)<7||Math.abs(z+3)<5)continue;const tuft=new THREE.Mesh(new THREE.ConeGeometry(.18,.62,3),grassMat);tuft.position.set(x,.28,z);tuft.rotation.y=i*.91;scene.add(tuft)}
+const dustPositions=new Float32Array(120*3);for(let i=0;i<120;i++){dustPositions[i*3]=((i*37)%580)/10-29;dustPositions[i*3+1]=.8+((i*19)%60)/10;dustPositions[i*3+2]=((i*53)%500)/10-25}const dustGeometry=new THREE.BufferGeometry();dustGeometry.setAttribute('position',new THREE.BufferAttribute(dustPositions,3));const dust=new THREE.Points(dustGeometry,new THREE.PointsMaterial({color:0xffe8bd,size:.055,transparent:true,opacity:.34,depthWrite:false}));scene.add(dust);
+
 function makePerson(name:string,shirtColor:number,hat=false){
   const g=new THREE.Group(); g.name=name;
   const body=new THREE.Mesh(new THREE.CylinderGeometry(.48,.62,1.45,8),mat(shirtColor));body.position.y=1.45;body.castShadow=true;g.add(body);
   const head=new THREE.Mesh(new THREE.SphereGeometry(.38,12,9),mat(0xd2a274));head.position.y=2.5;head.castShadow=true;g.add(head);
+  const collar=new THREE.Mesh(new THREE.TorusGeometry(.32,.055,6,12),mat(0xe0d1ae));collar.rotation.x=Math.PI/2;collar.position.y=2.08;g.add(collar);
+  const arms:THREE.Mesh[]=[];for(const sx of [-.6,.6]){const arm=new THREE.Mesh(new THREE.BoxGeometry(.2,.92,.23),mat(shirtColor));arm.position.set(sx,1.52,0);arm.castShadow=true;g.add(arm);arms.push(arm)}
   if(hat){const brim=new THREE.Mesh(new THREE.CylinderGeometry(.62,.62,.08,12),mat(0x272a27));brim.position.y=2.78;g.add(brim);const cap=new THREE.Mesh(new THREE.CylinderGeometry(.38,.48,.25,12),mat(0x272a27));cap.position.y=2.9;g.add(cap)}
-  for(const sx of [-.27,.27]){const leg=new THREE.Mesh(new THREE.BoxGeometry(.25,.8,.28),mat(0x303737));leg.position.set(sx,.45,0);leg.castShadow=true;g.add(leg)}
+  const legs:THREE.Mesh[]=[];for(const sx of [-.27,.27]){const leg=new THREE.Mesh(new THREE.BoxGeometry(.25,.8,.28),mat(0x303737));leg.position.set(sx,.45,0);leg.castShadow=true;g.add(leg);legs.push(leg)}
+  g.userData.limbs={arms,legs,body};
   scene.add(g); return g;
 }
 const npc=makePerson('김씨 아저씨',0x5d6650,true); npc.position.set(-4,0,-1); npc.rotation.y=.4;
@@ -131,7 +147,19 @@ const chapterLabel=document.querySelector('#chapterLabel')!;const questTitle=doc
 const guide=document.querySelector('#guide')!;const guideArrow=document.querySelector('#guideArrow') as HTMLElement;const guideName=document.querySelector('#guideName')!;const guideDistance=document.querySelector('#guideDistance')!;
 const startScreen=document.querySelector('#startScreen')!;
 const restartModal=document.querySelector('#restartModal')!;const restartButton=document.querySelector('#restartButton') as HTMLButtonElement;const restartCancel=document.querySelector('#restartCancel') as HTMLButtonElement;const restartConfirm=document.querySelector('#restartConfirm') as HTMLButtonElement;
+const soundButton=document.querySelector('#soundButton') as HTMLButtonElement;
 const workshop=document.querySelector('#workshop')!;const flagPreview=document.querySelector('#flagPreview')!;const workshopProgress=document.querySelector('#workshopProgress')!;const workshopAction=document.querySelector('#workshopAction') as HTMLButtonElement;const workshopClose=document.querySelector('#workshopClose') as HTMLButtonElement;
+
+// Original, lightweight Web Audio score and feedback. Audio starts only after player input.
+let audioContext:AudioContext|undefined,masterGain:GainNode|undefined,musicGain:GainNode|undefined,sfxGain:GainNode|undefined,musicTimer:number|undefined,melodyIndex=0;
+let audioEnabled=true;try{audioEnabled=localStorage.getItem('village1919-audio')!=='off'}catch{/* 기본값 유지 */}
+const melody=[293.66,392,440,392,329.63,293.66,261.63,293.66,329.63,392,329.63,293.66];
+function updateSoundButton(){soundButton.textContent=audioEnabled?'🔊 소리 켜짐':'🔇 소리 꺼짐';soundButton.setAttribute('aria-pressed',String(audioEnabled));soundButton.dataset.audio=audioContext?.state??'ready'}
+function tone(destination:AudioNode,frequency:number,duration:number,volume:number,type:OscillatorType='sine',delay=0){if(!audioContext)return;const now=audioContext.currentTime+delay;const oscillator=audioContext.createOscillator(),gain=audioContext.createGain();oscillator.type=type;oscillator.frequency.setValueAtTime(frequency,now);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(volume,now+.045);gain.gain.exponentialRampToValueAtTime(.0001,now+duration);oscillator.connect(gain).connect(destination);oscillator.start(now);oscillator.stop(now+duration+.04)}
+function scheduleMusic(){if(!audioEnabled||!audioContext||!musicGain)return;const note=melody[melodyIndex++%melody.length];tone(musicGain,note,1.05,.12,'sine');tone(musicGain,note/2,1.25,.045,'triangle',.03)}
+function ensureAudio(){if(!audioEnabled)return;if(!audioContext){audioContext=new AudioContext();masterGain=audioContext.createGain();musicGain=audioContext.createGain();sfxGain=audioContext.createGain();musicGain.gain.value=.24;sfxGain.gain.value=.68;masterGain.gain.value=.88;musicGain.connect(masterGain);sfxGain.connect(masterGain);masterGain.connect(audioContext.destination);const drone=audioContext.createOscillator(),droneGain=audioContext.createGain(),filter=audioContext.createBiquadFilter();drone.type='sine';drone.frequency.value=146.83;droneGain.gain.value=.012;filter.type='lowpass';filter.frequency.value=520;drone.connect(filter).connect(droneGain).connect(musicGain);drone.start();scheduleMusic();musicTimer=window.setInterval(scheduleMusic,1180)}void audioContext.resume().then(updateSoundButton);updateSoundButton()}
+function playSfx(kind:'talk'|'pickup'|'reward'|'jump'|'craft'){if(!audioEnabled){return}ensureAudio();if(!audioContext||!sfxGain)return;const output=sfxGain;if(kind==='talk')tone(output,392,.14,.055,'sine');if(kind==='pickup'){tone(output,587,.2,.11,'sine');tone(output,880,.28,.09,'sine',.11)}if(kind==='reward'){[523.25,659.25,783.99].forEach((note,index)=>tone(output,note,.42,.105,'triangle',index*.11))}if(kind==='jump'){tone(output,220,.24,.07,'triangle');tone(output,330,.2,.045,'sine',.07)}if(kind==='craft'){tone(output,440,.18,.08,'triangle');tone(output,554.37,.24,.065,'sine',.09)}}
+soundButton.onclick=()=>{audioEnabled=!audioEnabled;try{localStorage.setItem('village1919-audio',audioEnabled?'on':'off')}catch{/* 설정 저장 차단 시 현재 세션 유지 */}if(audioEnabled)ensureAudio();if(masterGain&&audioContext){masterGain.gain.setTargetAtTime(audioEnabled ? .88 : 0,audioContext.currentTime,.04)}updateSoundButton()};updateSoundButton();
 
 function saveProgress(){try{localStorage.setItem('village1919-save',JSON.stringify({quest,coins,collected:[...collected],flagStep} satisfies SaveData))}catch{/* 저장 차단 환경에서도 플레이는 계속된다 */}}
 function loadProgress(){try{const raw=localStorage.getItem('village1919-save');if(!raw)return false;const data=JSON.parse(raw) as SaveData;const valid:QuestState[]=['bundle_meet','bundle_find','bundle_return','meet_lee','materials_find','materials_return','flag_ready','flag_complete'];if(data.quest==='milestone_complete')quest='flag_ready';else if(valid.includes(data.quest as QuestState))quest=data.quest as QuestState;else return false;coins=Number(data.coins)||0;flagStep=Math.max(0,Math.min(3,Number(data.flagStep)||0));(data.collected||[]).filter(id=>id in materials).forEach(id=>collected.add(id));return true}catch{return false}}
@@ -157,28 +185,28 @@ function renderQuest(){
 }
 function setQuest(next:QuestState,toastText?:string){quest=next;renderQuest();saveProgress();if(toastText)showToast(toastText)}
 function showToast(text:string){toast.textContent=text;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2600)}
-function openDialogue(who:string,text:string,onClose?:()=>void,buttonText='계속하기'){paused=true;speaker.textContent=who;dialogueText.textContent=text;dialogue.classList.add('show');const button=document.querySelector('#continue') as HTMLButtonElement;button.textContent=buttonText;button.onclick=()=>{dialogue.classList.remove('show');paused=false;onClose?.()};}
+function openDialogue(who:string,text:string,onClose?:()=>void,buttonText='계속하기'){playSfx('talk');paused=true;speaker.textContent=who;dialogueText.textContent=text;dialogue.classList.add('show');const button=document.querySelector('#continue') as HTMLButtonElement;button.textContent=buttonText;button.onclick=()=>{dialogue.classList.remove('show');paused=false;onClose?.()};}
 function renderWorkshop(){flagPreview.className=`flag-preview step-${flagStep}`;const labels=['준비 완료 · 0/3','한지를 펼쳤어요 · 1/3','태극 문양을 그렸어요 · 2/3','태극기를 완성했어요 · 3/3'];const actions=['한지 펼치기','태극 문양 그리기','괘 배치하기','완성!'];workshopProgress.textContent=labels[flagStep];workshopAction.textContent=actions[flagStep];workshopAction.disabled=flagStep===3;workshopClose.textContent=flagStep===3?'완성한 태극기 들고 돌아가기':'잠시 마을로 돌아가기'}
 function openWorkshop(){paused=true;renderWorkshop();workshop.classList.add('show')}
-workshopAction.onclick=()=>{if(flagStep>=3)return;flagStep++;renderWorkshop();saveProgress();if(flagStep===3){coins+=5;setQuest('flag_complete','태극기 완성! 엽전 5개를 받았어요')}};
+workshopAction.onclick=()=>{if(flagStep>=3)return;flagStep++;playSfx(flagStep===3?'reward':'craft');renderWorkshop();saveProgress();if(flagStep===3){coins+=5;setQuest('flag_complete','태극기 완성! 엽전 5개를 받았어요')}};
 workshopClose.onclick=()=>{workshop.classList.remove('show');paused=false;if(flagStep===3)openDialogue('1장 완료','김씨 아저씨의 보따리를 찾고, 이씨 아주머니와 재료를 모아 태극기를 완성했어요. 여러 사람의 작은 도움이 큰 힘이 되었습니다.',undefined,'완료한 마을 둘러보기')};
 function interact(){
   if(paused){(document.querySelector('#continue') as HTMLButtonElement).click();return}
   const p=player.position; const npcDist=p.distanceTo(npc.position); const leeDist=p.distanceTo(lee.position); const bundleDist=p.distanceTo(bundle.position);
   if(quest==='materials_find'){
-    for(const id of Object.keys(materials) as MaterialId[]){if(materials[id].visible&&p.distanceTo(materials[id].position)<2.1){collected.add(id);materials[id].visible=false;const done=collected.size===3;if(done)setQuest('materials_return','재료를 모두 모았어요!');else{renderQuest();saveProgress();showToast(`${materialNames[id]}을(를) 찾았다 · ${collected.size}/3`)}return}}
+    for(const id of Object.keys(materials) as MaterialId[]){if(materials[id].visible&&p.distanceTo(materials[id].position)<2.1){playSfx('pickup');collected.add(id);materials[id].visible=false;const done=collected.size===3;if(done)setQuest('materials_return','재료를 모두 모았어요!');else{renderQuest();saveProgress();showToast(`${materialNames[id]}을(를) 찾았다 · ${collected.size}/3`)}return}}
   }
-  if(bundle.visible&&quest==='bundle_find'&&bundleDist<2.1){bundle.visible=false;bundleGlow.visible=false;setQuest('bundle_return','보따리를 찾았다!');return}
+  if(bundle.visible&&quest==='bundle_find'&&bundleDist<2.1){playSfx('pickup');bundle.visible=false;bundleGlow.visible=false;setQuest('bundle_return','보따리를 찾았다!');return}
   if(npcDist<2.7){
     if(quest==='bundle_meet')openDialogue('김씨 아저씨','아이고, 장에 가져온 보따리를 잃어버렸구나. 동쪽 큰 집 뒤에서 노란 천이 보였던 것 같은데… 함께 찾아주겠니?',()=>setQuest('bundle_find','1장 1/3 · 노란 빛기둥을 따라 보따리를 찾아보자'),'찾아볼게요');
     else if(quest==='bundle_find')openDialogue('김씨 아저씨','보따리는 장터 동쪽 큰 집 근처에서 잃어버린 것 같구나. 서두르지 말고 잘 살펴보렴.');
-    else if(quest==='bundle_return')openDialogue('김씨 아저씨','정말 찾아왔구나! 남을 위해 애써 준 마음이 참 고맙다. 이 엽전은 작은 답례란다.',()=>{coins=5;setQuest('meet_lee','1장 1/3 완료 · 엽전 5개! 이제 청록색 표식의 이씨 아주머니를 만나자')},'고맙습니다');
+    else if(quest==='bundle_return')openDialogue('김씨 아저씨','정말 찾아왔구나! 남을 위해 애써 준 마음이 참 고맙다. 이 엽전은 작은 답례란다.',()=>{coins=5;playSfx('reward');setQuest('meet_lee','1장 1/3 완료 · 엽전 5개! 이제 청록색 표식의 이씨 아주머니를 만나자')},'고맙습니다');
     else openDialogue('김씨 아저씨','이씨 아주머니가 너를 찾던데, 장터 건너편 붉은 옷을 입은 분이란다.');return;
   }
   if(leeDist<2.7){
     if(quest==='meet_lee')openDialogue('이씨 아주머니','보따리를 찾아준 아이가 너구나. 사람들과 함께 쓸 태극기를 만들려는데 한지와 붉은 물감, 푸른 물감이 필요해. 빛기둥과 길잡이를 따라 찾아줄 수 있겠니?',()=>setQuest('materials_find','1장 2/3 · 빛기둥을 따라 태극기 재료 3개를 모으자'),'제가 찾아볼게요');
     else if(quest==='materials_find')openDialogue('이씨 아주머니',`지금까지 ${collected.size}개를 찾았구나. 화면 위 수집 목록을 확인하고, 마을에 솟은 이름표와 빛기둥을 따라가 보렴.`);
-    else if(quest==='materials_return')openDialogue('이씨 아주머니','모두 찾아왔구나! 여러 사람이 마음을 모으면 큰일도 준비할 수 있단다. 이 엽전은 고마움의 표시야.',()=>{coins+=10;flagStep=0;setQuest('flag_ready','재료 찾기 완료! 엽전 10개 · 태극기 만들기가 열렸어요');openDialogue('역사 한 조각','1919년 여러 지역의 사람들은 만세운동을 준비하며 태극기를 직접 만들고 서로 나누었습니다. 게임 속 마을과 인물은 가상이에요.',undefined,'기억했어요')});
+    else if(quest==='materials_return')openDialogue('이씨 아주머니','모두 찾아왔구나! 여러 사람이 마음을 모으면 큰일도 준비할 수 있단다. 이 엽전은 고마움의 표시야.',()=>{coins+=10;flagStep=0;playSfx('reward');setQuest('flag_ready','재료 찾기 완료! 엽전 10개 · 태극기 만들기가 열렸어요');openDialogue('역사 한 조각','1919년 여러 지역의 사람들은 만세운동을 준비하며 태극기를 직접 만들고 서로 나누었습니다. 게임 속 마을과 인물은 가상이에요.',undefined,'기억했어요')});
     else if(quest==='flag_ready')openDialogue('이씨 아주머니','모아 온 재료가 모두 준비되었구나. 한지를 펼치고, 태극 문양과 네 괘를 차례로 완성해 보자.',openWorkshop,'만들기 시작');
     else openDialogue('이씨 아주머니','함께 만든 태극기를 잘 간직하렴. 다음 이야기가 열리기 전까지 마을을 자유롭게 둘러봐도 좋단다.');
   }
@@ -196,14 +224,15 @@ function debugTeleport(){
 }
 const hadSave=loadProgress();renderQuest();
 if(!hadSave){paused=true;startScreen.classList.add('show')}
-(document.querySelector('#startFresh') as HTMLButtonElement).onclick=()=>{collected.clear();coins=0;flagStep=0;startScreen.classList.remove('show');paused=false;setQuest('bundle_meet','1장 시작 · 노란 표식의 김씨 아저씨를 만나자')};
+(document.querySelector('#startFresh') as HTMLButtonElement).onclick=()=>{ensureAudio();playSfx('reward');collected.clear();coins=0;flagStep=0;startScreen.classList.remove('show');paused=false;setQuest('bundle_meet','1장 시작 · 노란 표식의 김씨 아저씨를 만나자')};
 let pausedBeforeRestart=false;
 restartButton.onclick=()=>{pausedBeforeRestart=paused;paused=true;restartModal.classList.add('show');restartCancel.focus()};
 restartCancel.onclick=()=>{restartModal.classList.remove('show');paused=pausedBeforeRestart;restartButton.focus()};
 restartConfirm.onclick=()=>{try{localStorage.removeItem('village1919-save')}finally{location.reload()}};
-addEventListener('keydown',e=>{if(restartModal.classList.contains('show')){if(e.code==='Escape')restartCancel.click();return}if(['KeyW','KeyA','KeyS','KeyD','Space','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.code==='Space'&&grounded&&!paused){verticalVelocity=7.3;keys.delete('Space')}if(e.code==='KeyE')interact();if(e.code==='F3'){e.preventDefault();debugVisible=!debugVisible;debug.classList.toggle('show',debugVisible)}if(e.code==='F4'&&debugVisible){e.preventDefault();debugTeleport()}});
+addEventListener('keydown',e=>{ensureAudio();if(restartModal.classList.contains('show')){if(e.code==='Escape')restartCancel.click();return}if(['KeyW','KeyA','KeyS','KeyD','Space','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.code==='Space'&&grounded&&!paused){verticalVelocity=7.3;playSfx('jump');keys.delete('Space')}if(e.code==='KeyE')interact();if(e.code==='F3'){e.preventDefault();debugVisible=!debugVisible;debug.classList.toggle('show',debugVisible)}if(e.code==='F4'&&debugVisible){e.preventDefault();debugTeleport()}});
 addEventListener('keyup',e=>keys.delete(e.code));
 renderer.domElement.addEventListener('pointerdown',e=>{
+  ensureAudio();
   orbitDragging=true;orbitPointerX=e.clientX;orbitPointerY=e.clientY;
   try{renderer.domElement.requestPointerLock?.().catch(()=>{})}catch{/* 드래그 시점으로 계속 플레이 */}
 });
@@ -222,13 +251,15 @@ addEventListener('wheel',e=>cameraDistance=THREE.MathUtils.clamp(cameraDistance+
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 
 const desired=new THREE.Vector3(), forward=new THREE.Vector3(), right=new THREE.Vector3(), cameraTarget=new THREE.Vector3(), raycaster=new THREE.Raycaster();
+function animatePerson(person:THREE.Group,moving:boolean,time:number){const limbs=person.userData.limbs as {arms:THREE.Mesh[];legs:THREE.Mesh[];body:THREE.Mesh};if(!limbs)return;const swing=moving?Math.sin(time*9)*.62:Math.sin(time*1.7)*.035;limbs.arms[0].rotation.x=swing;limbs.arms[1].rotation.x=-swing;limbs.legs[0].rotation.x=-swing*.72;limbs.legs[1].rotation.x=swing*.72;limbs.body.scale.y=1+Math.sin(time*2)*.012}
 function update(dt:number){
-  elapsed+=dt;npcMarker.position.y=3.55+Math.sin(elapsed*2.5)*.12;leeMarker.position.y=3.55+Math.sin(elapsed*2.5+1)*.12;diamond.rotation.y+=dt*1.8;leeDiamond.rotation.y-=dt*1.8;bundle.rotation.y+=dt*.7;bundle.position.y=.65+Math.sin(elapsed*2.2)*.08;bundleRing.scale.setScalar(1+Math.sin(elapsed*3)*.12);lee.rotation.y=-.7+Math.sin(elapsed*.7)*.18;
+  elapsed+=dt;npcMarker.position.y=3.55+Math.sin(elapsed*2.5)*.12;leeMarker.position.y=3.55+Math.sin(elapsed*2.5+1)*.12;diamond.rotation.y+=dt*1.8;leeDiamond.rotation.y-=dt*1.8;bundle.rotation.y+=dt*.7;bundle.position.y=.65+Math.sin(elapsed*2.2)*.08;bundleRing.scale.setScalar(1+Math.sin(elapsed*3)*.12);lee.rotation.y=-.7+Math.sin(elapsed*.7)*.18;clouds.forEach((cloud,index)=>{cloud.position.x+=dt*(.12+index*.035);if(cloud.position.x>48)cloud.position.x=-48});dust.rotation.y+=dt*.006;
   (Object.keys(materials) as MaterialId[]).forEach((id,index)=>{materials[id].rotation.y+=dt*.8;const base=id==='paper'?0.55:0.5;materials[id].position.y=base+Math.sin(elapsed*2+index)*.08;const marker=materials[id].children.find(child=>child.userData.materialMarker);if(marker)marker.rotation.y+=dt*2.4});
+  let playerMoving=false;
   if(!paused){
     forward.set(-Math.sin(yaw),0,-Math.cos(yaw)); right.set(Math.cos(yaw),0,-Math.sin(yaw)); desired.set(0,0,0);
     if(keys.has('KeyW'))desired.add(forward);if(keys.has('KeyS'))desired.sub(forward);if(keys.has('KeyD'))desired.add(right);if(keys.has('KeyA'))desired.sub(right);
-    const moving=desired.lengthSq()>0;if(moving){desired.normalize();const speed=(keys.has('ShiftLeft')||keys.has('ShiftRight'))?7:4.5;desired.multiplyScalar(speed*dt);const targetYaw=Math.atan2(desired.x,desired.z);player.rotation.y=THREE.MathUtils.lerp(player.rotation.y,targetYaw,.18)}
+    const moving=desired.lengthSq()>0;playerMoving=moving;if(moving){desired.normalize();const speed=(keys.has('ShiftLeft')||keys.has('ShiftRight'))?7:4.5;desired.multiplyScalar(speed*dt);const targetYaw=Math.atan2(desired.x,desired.z);player.rotation.y=THREE.MathUtils.lerp(player.rotation.y,targetYaw,.18)}
     grounded=controller.computedGrounded();if(grounded&&verticalVelocity<0)verticalVelocity=-.5;verticalVelocity-=18*dt;desired.y=verticalVelocity*dt;
     controller.computeColliderMovement(playerCollider,{x:desired.x,y:desired.y,z:desired.z});const mv=controller.computedMovement();const pos=playerBody.translation();playerBody.setNextKinematicTranslation({x:pos.x+mv.x,y:pos.y+mv.y,z:pos.z+mv.z});world.step();const np=playerBody.translation();player.position.set(np.x,np.y-.99,np.z);
     if(player.position.y < -8){playerBody.setNextKinematicTranslation({x:0,y:1.1,z:9});verticalVelocity=0;showToast('길에서 벗어나 장터로 돌아왔어요')}
@@ -237,6 +268,7 @@ function update(dt:number){
     if(!promptText&&bundle.visible&&quest==='bundle_find'&&bundleDist<2.1)promptText='<span class="key">E</span>보따리 줍기';else if(!promptText&&npcDist<2.7)promptText='<span class="key">E</span>김씨 아저씨와 이야기';else if(!promptText&&leeDist<2.7&&['meet_lee','materials_find','materials_return','flag_ready','flag_complete'].includes(quest))promptText='<span class="key">E</span>이씨 아주머니와 이야기';prompt.innerHTML=promptText;prompt.classList.toggle('show',!!promptText);
     const goal=currentTarget();guide.classList.toggle('show',!!goal);if(goal){const dx=goal.position.x-player.position.x,dz=goal.position.z-player.position.z;const distance=Math.hypot(dx,dz);const side=dx*Math.cos(yaw)-dz*Math.sin(yaw);const ahead=-dx*Math.sin(yaw)-dz*Math.cos(yaw);guideArrow.style.transform=`rotate(${Math.atan2(side,ahead)}rad)`;guideName.textContent=goal.name;guideDistance.textContent=distance<3?'바로 앞이에요':`${Math.round(distance)}m 남았어요`}
   }
+  animatePerson(player,playerMoving,elapsed);animatePerson(npc,false,elapsed+.7);animatePerson(lee,false,elapsed+1.4);
   cameraTarget.copy(player.position).add(new THREE.Vector3(0,1.75,0));const cp=new THREE.Vector3(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)).multiplyScalar(cameraDistance).add(cameraTarget);
   raycaster.set(cameraTarget,cp.clone().sub(cameraTarget).normalize());raycaster.far=cameraDistance;const hits=raycaster.intersectObjects(scene.children.filter(o=>o!==player&&o!==npc&&o!==lee&&o.type==='Mesh'),false);if(hits.length&&hits[0].distance<cameraDistance)cp.copy(raycaster.ray.at(Math.max(1.2,hits[0].distance-.35),new THREE.Vector3()));camera.position.lerp(cp,1-Math.exp(-12*dt));camera.lookAt(cameraTarget);
   frames++;fpsTimer+=dt;if(fpsTimer>.5){fps=Math.round(frames/fpsTimer);frames=0;fpsTimer=0}if(debugVisible){const p=player.position;debug.innerHTML=`FPS: ${fps}<br>위치: ${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)}<br>바닥 접촉: ${grounded?'YES':'NO'}<br>퀘스트: ${quest}<br>재료: ${collected.size}/3<br>오브젝트: ${scene.children.length}<br>물리: Rapier 3D<br>F4: 현재 목표로 이동`;}
