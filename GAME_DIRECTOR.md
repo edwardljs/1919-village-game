@@ -51,5 +51,14 @@ TypeScript + Vite + Three.js + Rapier 3D. 관절형 스타일라이즈드 캐릭
 - 현재 점수: Controls 7.5, Camera 7.5, Core Gameplay 7.5, Exploration 8.5, Game Feel 8.0, Goal Clarity 9.0, Quest 8.5, Reward 8.0, Progression 8.5, Historical Integration 8.0, Performance 8.0, Polish 9.0.
 - 다음 우선순위는 새 콘텐츠가 아니라 실제 시연 화면에서 UI와 캐릭터 이름표가 겹치지 않도록 최종 화면 구성을 조정하는 일이다.
 
+## 2026-08-23 크롬북 경량 배경
+
+- 19.1MB·약 27만 삼각형의 집사전악 모델은 제거하고, 원본은 사용자의 다운로드 폴더에 보존한다.
+- Kenney Nature Kit의 CC0 나무·풀·돌·통나무·꽃과 Three.js 예제의 경량 새 모델로 마을 외곽을 보강한다.
+- 장면의 전체 GLB 용량은 약 26.3MB에서 7.4MB로 줄였다.
+- 2스레드 또는 4GB 이하 기기에서는 렌더링 배율 1.15, 그림자 1024의 `CHROMEBOOK` 품질을 자동 적용한다.
+- 현재 점수: Controls 7.5, Camera 7.5, Core Gameplay 7.5, Exploration 9.0, Game Feel 8.5, Goal Clarity 9.0, Quest 8.5, Reward 8.0, Progression 8.5, Historical Integration 8.0, Performance 9.0, Polish 9.0.
+- 다음 우선순위는 실제 Galaxy Chromebook 2 360에서 첫 로딩 시간과 최저 FPS를 측정하는 일이다.
+
 
 

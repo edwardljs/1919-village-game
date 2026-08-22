@@ -54,7 +54,7 @@ canvas { display: block; width: 100%; height: 100%; }
 .toast.show { opacity:1; transform:translate(-50%,0); }
 .debug { position:absolute; right:12px; bottom:12px; min-width:220px; padding:10px 12px; color:#b7f7c1; background:#07100de8; border:1px solid #4d7; font:12px/1.55 Consolas,monospace; display:none; }
 .debug.show { display:block; }
-.heritage-credit { position:absolute; right:15px; bottom:8px; z-index:24; max-width:520px; color:#e9dfc7aa; font-size:10px; pointer-events:auto; text-align:right; text-shadow:0 1px 3px #000; }
+.heritage-credit { position:absolute; right:15px; bottom:8px; z-index:24; max-width:720px; color:#e9dfc7aa; font-size:10px; pointer-events:auto; text-align:right; text-shadow:0 1px 3px #000; }
 .heritage-credit a { color:#f4d98dbd; text-decoration:none; }.heritage-credit a:hover,.heritage-credit a:focus-visible { color:#fff0b3; text-decoration:underline; }
 .reticle { position:absolute; top:50%; left:50%; width:5px; height:5px; border-radius:50%; background:#fff9; transform:translate(-50%,-50%); }
 .start-screen { position:absolute; inset:0; display:none; place-items:center; padding:22px; background:radial-gradient(circle at 50% 35%,#39584e9e,#101a18e8 72%); pointer-events:auto; }

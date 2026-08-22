@@ -19,7 +19,7 @@ app.innerHTML = `<div class="ui">
   <div class="workshop" id="workshop"><div class="workshop-card"><div class="workshop-kicker">함께 만드는 태극기</div><h2>태극기를 완성해 보자</h2><p>재료를 차례로 사용해 간단한 태극기를 완성해요.</p><div class="flag-preview" id="flagPreview"><div class="flag-paper"></div><div class="taegeuk"></div><div class="trigram trigram-a">☰</div><div class="trigram trigram-b">☷</div><div class="trigram trigram-c">☵</div><div class="trigram trigram-d">☲</div></div><div class="workshop-progress" id="workshopProgress">준비 완료 · 0/3</div><button class="workshop-action" id="workshopAction">한지 펼치기</button><button class="workshop-close" id="workshopClose">마을로 돌아가기</button></div></div>
   <div class="controls" id="controls"><b>WASD</b> 이동 · <b>마우스</b> 시점<br><b>Space</b> 점프 · <b>Shift</b> 달리기 · <b>E</b> 대화<br><b>F3</b> 상태 정보</div>
   <div class="reticle"></div><div class="debug" id="debug"></div>
-  <div class="heritage-credit">3D 문화유산 자료 · <a href="https://sketchfab.com/3d-models/jipsajeonak-0a6200cfe6554767af9eb937173c4178" target="_blank" rel="noreferrer">집사전악</a> · <a href="https://sketchfab.com/3d-models/yongjun-1249db1e427e457f8c18ac73d8b1002a" target="_blank" rel="noreferrer">용준</a> · <a href="https://sketchfab.com/3d-models/gyeongbokgung-gangnyeongjeon-tablea-b16f47a09d0e4399af6274afceb4982f" target="_blank" rel="noreferrer">강녕전 상</a> · CC BY 4.0</div>
+  <div class="heritage-credit"><a href="https://kenney.nl/assets/nature-kit" target="_blank" rel="noreferrer">Kenney Nature Kit · CC0</a> · <a href="https://github.com/mrdoob/three.js/blob/dev/examples/models/gltf/Stork.glb" target="_blank" rel="noreferrer">Three.js Stork</a> · 문화유산 <a href="https://sketchfab.com/3d-models/yongjun-1249db1e427e457f8c18ac73d8b1002a" target="_blank" rel="noreferrer">용준</a>·<a href="https://sketchfab.com/3d-models/gyeongbokgung-gangnyeongjeon-tablea-b16f47a09d0e4399af6274afceb4982f" target="_blank" rel="noreferrer">강녕전 상</a></div>
   <div class="restart-modal" id="restartModal" role="dialog" aria-modal="true" aria-labelledby="restartTitle"><div class="restart-card"><h2 id="restartTitle">1장을 처음부터 시작할까요?</h2><p>현재 진행 상황과 엽전이 초기화됩니다.</p><div class="restart-actions"><button class="restart-cancel" id="restartCancel">계속 플레이</button><button class="restart-confirm" id="restartConfirm">처음부터 다시 시작</button></div></div></div>
   <div class="start-screen" id="startScreen"><div class="start-card"><div class="start-kicker">1919 · 그날의 마을</div><h1>1장 · 함께 만든 태극기</h1><p>장터에서 잃어버린 보따리를 찾고, 마을 사람들과 힘을 모아 태극기를 완성해 보세요.</p><div class="start-actions"><button class="story-button" id="startFresh">1장 시작하기</button></div><div class="save-note">진행 상황은 이 브라우저에 자동으로 저장됩니다.</div></div></div>
 </div>`;
@@ -31,7 +31,8 @@ const skyCanvas=document.createElement('canvas');skyCanvas.width=32;skyCanvas.he
 scene.fog = new THREE.Fog(0xb7cbbd, 38, 84);
 const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 120);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
+const deviceMemory=(navigator as Navigator&{deviceMemory?:number}).deviceMemory??8;const lowPowerDevice=navigator.hardwareConcurrency<=2||deviceMemory<=4;
+renderer.setPixelRatio(Math.min(devicePixelRatio, lowPowerDevice?1.15:1.5));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -40,7 +41,7 @@ renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.
 app.prepend(renderer.domElement);
 
 scene.add(new THREE.HemisphereLight(0xe8f3e8, 0x66503d, 2.05));
-const sun = new THREE.DirectionalLight(0xffd99a, 3.35); sun.position.set(-18, 28, 14); sun.castShadow = true; sun.shadow.mapSize.set(2048,2048); sun.shadow.camera.left=-35; sun.shadow.camera.right=35; sun.shadow.camera.top=35; sun.shadow.camera.bottom=-35;sun.shadow.bias=-.00035;sun.shadow.normalBias=.025; scene.add(sun);
+const sun = new THREE.DirectionalLight(0xffd99a, 3.35); sun.position.set(-18, 28, 14); sun.castShadow = true; const shadowSize=lowPowerDevice?1024:2048;sun.shadow.mapSize.set(shadowSize,shadowSize); sun.shadow.camera.left=-35; sun.shadow.camera.right=35; sun.shadow.camera.top=35; sun.shadow.camera.bottom=-35;sun.shadow.bias=-.00035;sun.shadow.normalBias=.025; scene.add(sun);
 const sunCanvas=document.createElement('canvas');sunCanvas.width=128;sunCanvas.height=128;const sunCtx=sunCanvas.getContext('2d')!;const sunGlow=sunCtx.createRadialGradient(64,64,4,64,64,62);sunGlow.addColorStop(0,'rgba(255,244,194,.95)');sunGlow.addColorStop(.35,'rgba(255,220,140,.65)');sunGlow.addColorStop(1,'rgba(255,211,128,0)');sunCtx.fillStyle=sunGlow;sunCtx.fillRect(0,0,128,128);const sunSprite=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(sunCanvas),transparent:true,depthWrite:false}));sunSprite.position.set(-25,23,-58);sunSprite.scale.set(12,12,1);scene.add(sunSprite);
 
 const mat = (color:number, roughness=.85) => new THREE.MeshStandardMaterial({color,roughness});
@@ -98,9 +99,22 @@ function placeHeritageModel(file:string,position:[number,number,number],rotation
   heritageLoader.load(`./models/${file}`,gltf=>{const model=gltf.scene;model.position.set(...position);model.rotation.y=rotationY;model.traverse(object=>{if(object instanceof THREE.Mesh){object.castShadow=true;object.receiveShadow=true}});scene.add(model)},undefined,error=>console.error(`문화유산 모델 로드 실패: ${file}`,error));
   if(collider)world.createCollider(RAPIER.ColliderDesc.cuboid(collider[0]/2,collider[1]/2,collider[2]/2).setTranslation(position[0],position[1]+collider[1]/2,position[2]));
 }
-placeHeritageModel('jipsajeonak.glb',[-4,0,4],-2.46,[.7,1.9,.7]);
 placeHeritageModel('gangnyeongjeon-table.glb',[4.5,0,4],-Math.PI/2,[.85,.42,1.2]);
 placeHeritageModel('yongjun.glb',[4.5,.4,4],-Math.PI/2);
+
+type NaturePlacement=[number,number,number,number];
+function scatterNature(file:string,placements:NaturePlacement[]){
+  heritageLoader.load(`./models/kenney/${file}`,gltf=>{for(const [x,z,scale,rotation] of placements){const model=gltf.scene.clone(true);model.position.set(x,0,z);model.rotation.y=rotation;model.scale.setScalar(scale);model.traverse(object=>{if(object instanceof THREE.Mesh){object.castShadow=true;object.receiveShadow=true}});scene.add(model)}},undefined,error=>console.error(`자연 모델 로드 실패: ${file}`,error));
+}
+scatterNature('tree-oak.glb',[[-24,-15,3.4,.2],[-25,12,3.8,1.4],[23,-14,3.2,2.1],[24,16,3.6,.7],[-13,22,3.1,2.7],[15,22,3.5,1.9]]);
+scatterNature('pine-tall.glb',[[-21,-23,3.4,.1],[-8,-24,3.1,1.2],[7,-24,3.5,2.3],[21,-22,3.2,.8]]);
+scatterNature('grass-large.glb',[[-20,-7,1.5,.2],[-22,7,1.2,2],[-13,18,1.5,1],[-18,17,1.15,2.5],[19,18,1.4,.6],[22,8,1.2,2.4],[20,-9,1.5,1.5],[-12,-20,1.25,.8],[12,-20,1.4,2.2]]);
+scatterNature('stone-large.glb',[[-21,-9,1.7,.5],[-22,15,1.3,2.1],[21,12,1.55,1.4],[19,-17,1.4,.2]]);
+scatterNature('log-stack.glb',[[-20,7,2.1,.5],[20,-11,1.9,2.4]]);
+scatterNature('flower-yellow.glb',[[-19,10,2.2,.2],[-18.5,10.4,1.8,1.3],[19,14,2.1,2.1],[18.6,14.4,1.7,.7]]);
+
+const birdFlights:{root:THREE.Object3D;mixer:THREE.AnimationMixer;angle:number;radius:number;speed:number;height:number}[]=[];
+heritageLoader.load('./models/stork.glb',gltf=>{for(let i=0;i<2;i++){const bird=gltf.scene.clone(true);bird.scale.setScalar(.007);bird.traverse(object=>{if(object instanceof THREE.Mesh)object.castShadow=true});scene.add(bird);const mixer=new THREE.AnimationMixer(bird);if(gltf.animations[0])mixer.clipAction(gltf.animations[0]).setDuration(.75+i*.12).play();birdFlights.push({root:bird,mixer,angle:i*Math.PI,radius:14+i*5,speed:.12+i*.025,height:10.5+i*2})}},undefined,error=>console.error('새 모델 로드 실패',error));
 
 // Market stalls and dressing
 function stall(x:number,z:number,color:number){
@@ -317,9 +331,9 @@ function update(dt:number){
   animatePerson(player,playerMoving,elapsed);animatePerson(npc,false,elapsed+.7);animatePerson(lee,false,elapsed+1.4);
   cameraTarget.copy(player.position).add(new THREE.Vector3(0,1.75,0));const cp=new THREE.Vector3(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)).multiplyScalar(cameraDistance).add(cameraTarget);
   raycaster.set(cameraTarget,cp.clone().sub(cameraTarget).normalize());raycaster.far=cameraDistance;const hits=raycaster.intersectObjects(scene.children.filter(o=>o!==player&&o!==npc&&o!==lee&&o.type==='Mesh'),false);if(hits.length&&hits[0].distance<cameraDistance)cp.copy(raycaster.ray.at(Math.max(1.2,hits[0].distance-.35),new THREE.Vector3()));camera.position.lerp(cp,1-Math.exp(-12*dt));camera.lookAt(cameraTarget);
-  frames++;fpsTimer+=dt;if(fpsTimer>.5){fps=Math.round(frames/fpsTimer);frames=0;fpsTimer=0}if(debugVisible){const p=player.position;debug.innerHTML=`FPS: ${fps}<br>위치: ${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)}<br>바닥 접촉: ${grounded?'YES':'NO'}<br>퀘스트: ${quest}<br>재료: ${collected.size}/3<br>오브젝트: ${scene.children.length}<br>물리: Rapier 3D<br>F4: 현재 목표로 이동`;}
+  frames++;fpsTimer+=dt;if(fpsTimer>.5){fps=Math.round(frames/fpsTimer);frames=0;fpsTimer=0}if(debugVisible){const p=player.position;debug.innerHTML=`FPS: ${fps}<br>위치: ${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)}<br>바닥 접촉: ${grounded?'YES':'NO'}<br>퀘스트: ${quest}<br>재료: ${collected.size}/3<br>오브젝트: ${scene.children.length}<br>품질: ${lowPowerDevice?'CHROMEBOOK':'STANDARD'}<br>물리: Rapier 3D<br>F4: 현재 목표로 이동`;}
 }
-function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);update(dt);renderer.render(scene,camera)}
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);for(const bird of birdFlights){bird.mixer.update(dt);bird.angle+=dt*bird.speed;bird.root.position.set(Math.cos(bird.angle)*bird.radius,bird.height+Math.sin(bird.angle*2)*.65,-8+Math.sin(bird.angle)*bird.radius);bird.root.rotation.y=-bird.angle}update(dt);renderer.render(scene,camera)}
 animate();
 setTimeout(()=>document.querySelector('#controls')?.classList.add('fade'),9000);
 
