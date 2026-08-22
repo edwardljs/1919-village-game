@@ -95,12 +95,12 @@ house(-15,-14,8,7); house(15,-15,9,7); house(-17,11,10,7,true); house(17,12,8,6,
 
 // 국가유산청 계열 CC BY 4.0 모델. GLB 내부 변환에 cm→m 배율이 이미 포함되어 있다.
 const heritageLoader=new GLTFLoader();
-function placeHeritageModel(file:string,position:[number,number,number],rotationY=0,collider?:[number,number,number]){
-  heritageLoader.load(`./models/${file}`,gltf=>{const model=gltf.scene;model.position.set(...position);model.rotation.y=rotationY;model.traverse(object=>{if(object instanceof THREE.Mesh){object.castShadow=true;object.receiveShadow=true}});scene.add(model)},undefined,error=>console.error(`문화유산 모델 로드 실패: ${file}`,error));
+function placeHeritageModel(file:string,position:[number,number,number],rotationY=0,scale=1,collider?:[number,number,number]){
+  heritageLoader.load(`./models/${file}`,gltf=>{const model=gltf.scene;model.position.set(...position);model.rotation.y=rotationY;model.scale.setScalar(scale);model.traverse(object=>{if(object instanceof THREE.Mesh){object.castShadow=true;object.receiveShadow=true}});scene.add(model)},undefined,error=>console.error(`문화유산 모델 로드 실패: ${file}`,error));
   if(collider)world.createCollider(RAPIER.ColliderDesc.cuboid(collider[0]/2,collider[1]/2,collider[2]/2).setTranslation(position[0],position[1]+collider[1]/2,position[2]));
 }
-placeHeritageModel('gangnyeongjeon-table.glb',[4.5,0,4],-Math.PI/2,[.85,.42,1.2]);
-placeHeritageModel('yongjun.glb',[4.5,.4,4],-Math.PI/2);
+placeHeritageModel('gangnyeongjeon-table.glb',[4.5,0,4],-Math.PI/2,1.8,[1.5,.7,2.05]);
+placeHeritageModel('yongjun.glb',[4.5,.7,4],-Math.PI/2,1.5);
 
 type NaturePlacement=[number,number,number,number];
 function scatterNature(file:string,placements:NaturePlacement[]){

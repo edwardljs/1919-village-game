@@ -60,5 +60,13 @@ TypeScript + Vite + Three.js + Rapier 3D. 관절형 스타일라이즈드 캐릭
 - 현재 점수: Controls 7.5, Camera 7.5, Core Gameplay 7.5, Exploration 9.0, Game Feel 8.5, Goal Clarity 9.0, Quest 8.5, Reward 8.0, Progression 8.5, Historical Integration 8.0, Performance 9.0, Polish 9.0.
 - 다음 우선순위는 실제 Galaxy Chromebook 2 360에서 첫 로딩 시간과 최저 FPS를 측정하는 일이다.
 
+## 2026-08-23 업로드 GLB 시각 비율
+
+- 국가유산 GLB의 원본 실측 정보는 유지하되, 과장된 캐릭터·한옥과 한 화면에서 자연스럽게 읽히도록 표시 배율을 별도로 적용한다.
+- 강녕전 상은 1.8배, 용준은 1.5배로 표시하며 용준의 높이와 목제 상 충돌체도 확대 비율에 맞춘다.
+- 이 조정은 역사적 실측 재현이 아니라 시연용 스타일 일관성과 소품 가독성을 위한 연출임을 문서에 명시한다.
+- 현재 점수: Controls 7.5, Camera 7.5, Core Gameplay 7.5, Exploration 9.0, Game Feel 8.5, Goal Clarity 9.0, Quest 8.5, Reward 8.0, Progression 8.5, Historical Integration 8.0, Performance 9.0, Polish 9.0.
+- 다음 우선순위는 실제 Galaxy Chromebook 2 360에서 첫 로딩 시간과 최저 FPS를 측정하는 일이다.
+
 
 
