@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 import './styles.css';
 
@@ -18,6 +19,7 @@ app.innerHTML = `<div class="ui">
   <div class="workshop" id="workshop"><div class="workshop-card"><div class="workshop-kicker">함께 만드는 태극기</div><h2>태극기를 완성해 보자</h2><p>재료를 차례로 사용해 간단한 태극기를 완성해요.</p><div class="flag-preview" id="flagPreview"><div class="flag-paper"></div><div class="taegeuk"></div><div class="trigram trigram-a">☰</div><div class="trigram trigram-b">☷</div><div class="trigram trigram-c">☵</div><div class="trigram trigram-d">☲</div></div><div class="workshop-progress" id="workshopProgress">준비 완료 · 0/3</div><button class="workshop-action" id="workshopAction">한지 펼치기</button><button class="workshop-close" id="workshopClose">마을로 돌아가기</button></div></div>
   <div class="controls" id="controls"><b>WASD</b> 이동 · <b>마우스</b> 시점<br><b>Space</b> 점프 · <b>Shift</b> 달리기 · <b>E</b> 대화<br><b>F3</b> 상태 정보</div>
   <div class="reticle"></div><div class="debug" id="debug"></div>
+  <div class="heritage-credit">3D 문화유산 자료 · <a href="https://sketchfab.com/3d-models/jipsajeonak-0a6200cfe6554767af9eb937173c4178" target="_blank" rel="noreferrer">집사전악</a> · <a href="https://sketchfab.com/3d-models/yongjun-1249db1e427e457f8c18ac73d8b1002a" target="_blank" rel="noreferrer">용준</a> · <a href="https://sketchfab.com/3d-models/gyeongbokgung-gangnyeongjeon-tablea-b16f47a09d0e4399af6274afceb4982f" target="_blank" rel="noreferrer">강녕전 상</a> · CC BY 4.0</div>
   <div class="restart-modal" id="restartModal" role="dialog" aria-modal="true" aria-labelledby="restartTitle"><div class="restart-card"><h2 id="restartTitle">1장을 처음부터 시작할까요?</h2><p>현재 진행 상황과 엽전이 초기화됩니다.</p><div class="restart-actions"><button class="restart-cancel" id="restartCancel">계속 플레이</button><button class="restart-confirm" id="restartConfirm">처음부터 다시 시작</button></div></div></div>
   <div class="start-screen" id="startScreen"><div class="start-card"><div class="start-kicker">1919 · 그날의 마을</div><h1>1장 · 함께 만든 태극기</h1><p>장터에서 잃어버린 보따리를 찾고, 마을 사람들과 힘을 모아 태극기를 완성해 보세요.</p><div class="start-actions"><button class="story-button" id="startFresh">1장 시작하기</button></div><div class="save-note">진행 상황은 이 브라우저에 자동으로 저장됩니다.</div></div></div>
 </div>`;
@@ -89,6 +91,16 @@ function house(x:number,z:number,w:number,d:number,flip=false){
   return group;
 }
 house(-15,-14,8,7); house(15,-15,9,7); house(-17,11,10,7,true); house(17,12,8,6,true);
+
+// 국가유산청 계열 CC BY 4.0 모델. GLB 내부 변환에 cm→m 배율이 이미 포함되어 있다.
+const heritageLoader=new GLTFLoader();
+function placeHeritageModel(file:string,position:[number,number,number],rotationY=0,collider?:[number,number,number]){
+  heritageLoader.load(`./models/${file}`,gltf=>{const model=gltf.scene;model.position.set(...position);model.rotation.y=rotationY;model.traverse(object=>{if(object instanceof THREE.Mesh){object.castShadow=true;object.receiveShadow=true}});scene.add(model)},undefined,error=>console.error(`문화유산 모델 로드 실패: ${file}`,error));
+  if(collider)world.createCollider(RAPIER.ColliderDesc.cuboid(collider[0]/2,collider[1]/2,collider[2]/2).setTranslation(position[0],position[1]+collider[1]/2,position[2]));
+}
+placeHeritageModel('jipsajeonak.glb',[-4,0,4],-2.46,[.7,1.9,.7]);
+placeHeritageModel('gangnyeongjeon-table.glb',[4.5,0,4],-Math.PI/2,[.85,.42,1.2]);
+placeHeritageModel('yongjun.glb',[4.5,.4,4],-Math.PI/2);
 
 // Market stalls and dressing
 function stall(x:number,z:number,color:number){
